@@ -462,10 +462,10 @@ class CSVLoader:
     Run `scorer.loader.save_template("template.csv")` for a blank template.
     """
 
-    ACCOUNT_ALIASES   = ["account_id", "account", "user_id", "user", "username", "handle", "author"]
-    POST_ALIASES      = ["post_text", "text", "content", "body", "post", "tweet", "message", "comment"]
+    ACCOUNT_ALIASES   = ["account_id", "account", "user_id", "user", "username", "handle", "author", "tweet_id"]
+    POST_ALIASES      = ["post_text", "text", "content", "body", "post", "tweet", "message", "comment", "tweet_text"]
     HOUR_ALIASES      = ["posting_hour", "hour", "post_hour", "hour_of_day"]
-    TIMESTAMP_ALIASES = ["post_timestamp", "timestamp", "created_at", "date", "datetime", "time"]
+    TIMESTAMP_ALIASES = ["post_timestamp", "timestamp", "created_at", "date", "datetime", "time", "posted_at"]
 
     def load(self, csv_path: str) -> Dict:
         """Load a single CSV. Returns accounts dict."""
@@ -840,9 +840,26 @@ if __name__ == "__main__":
     if args.csv_files:
         results, clusters = scorer.analyze_csv(*args.csv_files)
     else:
-        print("No CSV files provided — running on built-in synthetic dataset.\n")
-        csv_path = _write_synthetic_csvs()
-        results, clusters = scorer.analyze_csv(csv_path)
+        # Auto-discover CSVs in ./data/ subfolder
+        data_dir = Path("data")
+        discovered = []
+        if data_dir.exists():
+            discovered = sorted(data_dir.glob("*.csv"))
+
+        if discovered:
+            print(f"No CSV files specified — found {len(discovered)} CSV(s) in ./data/:")
+            for p in discovered:
+                print(f"  {p}")
+            print()
+            results, clusters = scorer.analyze_csv(*[str(p) for p in discovered])
+        else:
+            print("No CSV files provided and no CSVs found in ./data/")
+            print("Running on built-in synthetic dataset.\n")
+            print("Usage:  python styleshield_scorer.py accounts.csv")
+            print("        python styleshield_scorer.py data/train.csv data/test.csv")
+            print("        python styleshield_scorer.py --template\n")
+            csv_path = _write_synthetic_csvs()
+            results, clusters = scorer.analyze_csv(csv_path)
 
     # Print top results
     print("\n\nTOP 15 ACCOUNTS BY CONFIDENCE:")
@@ -862,3 +879,4 @@ if __name__ == "__main__":
 
     print(f"\nExported: {args.output}, {clusters_path}")
     print("StyleShield complete.")
+
