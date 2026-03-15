@@ -1,92 +1,112 @@
-# StyleShield — Setup Guide
-## Frontier Tower Hackathon | AI Safety & Evaluation Track
+# StyleShield
+### Coordination detection via stylometric anomaly analysis
+
+**Live demo:** [operationstyleshield.vercel.app](https://operationstyleshield.vercel.app/)
+**Backend API:** [operationstyleshield-production.up.railway.app](https://operationstyleshield-production.up.railway.app)
+**GitHub:** [github.com/ShonPan/operationstyleshield](https://github.com/ShonPan/operationstyleshield)
 
 ---
 
-### Quick Start (5 minutes)
+## What is StyleShield?
 
-**Prerequisites:** Python 3.10+, Node.js 18+, npm
+StyleShield detects coordinated inauthentic behavior by analyzing the natural topology of language. Human writing has predictable texture — varied vocabulary, inconsistent rhythm, personal quirks — with natural entropy. When multiple accounts produce writing that deviates from this natural gradient in the same way, it's evidence of coordination — whether from bot farms, LLM-generated personas, or scripted troll operations.
 
-**1. Clone the repo**
+Adapted from **Xenarch**, a planetary technosignature detection system that found the Apollo 11 lunar lander at 99.58% confidence, StyleShield applies the same multi-metric anomaly detection to social media.
+
+---
+
+## Try it now
+
+1. Go to **[operationstyleshield.vercel.app](https://operationstyleshield.vercel.app/)**
+2. Click **"Load demo"** to analyze the bundled 53-account dataset
+3. Watch the console stream real analysis output
+4. Explore coordinated networks — click clusters to see evidence
+5. Click **"Reveal ground truth"** to see detection accuracy
+6. Upload your own CSV to analyze any dataset
+
+---
+
+## Run locally
+
+**Prerequisites:** Python 3.10+, Node.js 18+
+
+**Backend:**
 ```bash
-git clone https://github.com/Saurabhkhire/operationstyleshield.git
+git clone https://github.com/ShonPan/operationstyleshield.git
 cd operationstyleshield
-git checkout experimental/combined-pipeline
-```
-
-**2. Install Python dependencies**
-```bash
 pip3 install flask flask-cors numpy pandas scikit-learn scipy
-```
-
-**3. Start the backend**
-```bash
 python3 api.py
 ```
-You should see: `StyleShield API starting on http://localhost:5002`
+API starts on `http://localhost:5000`
 
-**4. In a new terminal, start the frontend**
+**Frontend:**
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-Opens at `http://localhost:5173` (or next available port — check terminal output)
-
-**5. Use the app**
-- Click **"Load demo dataset"** to analyze the bundled 53-account dataset
-- Or click **"Upload CSV"** to analyze your own data
-- Watch the console stream real analysis output
-- Explore clusters, click accounts, view evidence
-- Click **"Reveal ground truth"** to see detection accuracy
-- Switch to **"Timeline Simulation"** tab to see 48hr flooding impact
+Opens at `http://localhost:5173`
 
 ---
 
-### CSV Format
+## CSV format
 
-If you want to test with your own data, the CSV needs three columns:
+Upload any CSV with three columns:
 
 ```
 account_id,post_text,posting_hour
-jane_doe_42,"honestly this coffee shop is amazing lol",9
-some_user_99,"Certainly the benefits are clear. Moreover the quality is high.",14
+jane42,"honestly this coffee shop is amazing lol",9
+user_99,"Certainly the benefits are clear. Moreover the quality is high.",14
 ```
-
-- `account_id` — any string, one per account
-- `post_text` — the post content
-- `posting_hour` — 0-23, hour of day posted
 
 Each account should have 3+ posts for reliable analysis.
 
 ---
 
-### What You're Seeing
+## How it works
 
-StyleShield analyzes writing patterns across accounts to detect coordination. It does NOT use labels, metadata, or content moderation. Detection is purely structural:
+StyleShield extracts 40+ stylometric features per account, clusters accounts by writing fingerprint similarity using DBSCAN, and identifies coordinated networks that no single-post classifier can detect.
 
-- **Coordinated networks** = groups of accounts with suspiciously similar writing fingerprints
-- **Organic (noise)** = accounts with unique writing that don't match anyone else
-- **Model inference** = best guess at whether the coordination is LLM-generated or human-scripted
+**Detection is purely structural.** No labels, no metadata, no content moderation. If accounts write too similarly across enough dimensions, they cluster — and that coordination is the signal.
 
-The demo dataset contains 53 accounts with realistic usernames. Some are real humans (2015 Twitter data). Some are AI-generated. Some are stealth bots designed to look human. The system doesn't know which is which — it detects coordination from writing style alone.
+**Results include:**
+- Coordinated network identification with coordination scores
+- Model inference (GPT-4 detected, suspected LLM, unknown origin)
+- Campaign narrative analysis (what topics the network is pushing)
+- Per-account evidence explaining why each account was flagged or cleared
 
 ---
 
-### Project Structure
+## Key results
+
+In testing against stealth bots — AI-generated accounts prompted to mimic human writing:
+
+| | StyleShield | Naive LLM judge |
+|---|---|---|
+| F1 Score | **0.758** | 0.408 |
+| Stealth bots caught | **65%** | 0% |
+| Overall threats caught | **75%** | 30% |
+
+---
+
+## Project structure
 
 ```
 operationstyleshield/
-├── api.py                  # Flask backend
+├── api.py                  # Flask backend API
 ├── core/                   # Analysis engine
 │   ├── Styleshield_script.py    # Base multi-metric scorer
 │   ├── enhanced_extractor.py    # 40+ stylometric features
-│   └── enhanced_pipeline.py     # Full pipeline with DBSCAN
-├── frontend/               # React dashboard
-├── demo/                   # Demo datasets
-│   ├── demo_environment_anonymized.csv    # Balanced (53 accounts)
-│   ├── demo_ground_truth.json             # Answer key
-│   ├── demo_flood_environment.csv         # Bot-heavy (81% bots)
-│   └── demo_flood_ground_truth.json
-└── docs/                   # Documentation
+│   └── enhanced_pipeline.py     # Full pipeline with DBSCAN + t-SNE
+├── frontend/               # React + Vite dashboard
+├── demo/                   # Demo datasets + ground truth
+└── docs/                   # Documentation + specs
 ```
+
+---
+
+## Built at
+
+Frontier Tower Hackathon | March 14–15, 2026 | AI Safety & Evaluation Track (Protocol Labs)
+
+Shon Pan · Caleb Strom · Abdul
