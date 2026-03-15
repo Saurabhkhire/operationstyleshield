@@ -4,6 +4,8 @@ import "./App.css";
 
 Chart.register(...registerables);
 
+const API_URL = import.meta.env.VITE_API_URL || '';
+
 // ============================================================
 // CSV PARSER (for ground truth + fallback)
 // ============================================================
@@ -1383,7 +1385,7 @@ export default function App() {
     formData.append("csv", file);
 
     try {
-      const response = await fetch("/api/analyze_stream", {
+      const response = await fetch(`${API_URL}/api/analyze_stream`, {
         method: "POST",
         body: formData,
       });
