@@ -280,6 +280,7 @@ def _json_safe(obj):
     return obj
 
 
+@app.route('/', methods=['GET'])
 @app.route('/api/health', methods=['GET'])
 def health():
     return jsonify({"ok": True})
